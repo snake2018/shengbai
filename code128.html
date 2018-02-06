@@ -1,0 +1,36 @@
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.8.0/dist/barcodes/JsBarcode.code128.min.js"></script>
+    <script>
+    function clean(){
+        $('#imgs').html("")
+    }
+    function code(val,index){
+        if(!!val){
+            $('#imgs').append((index+1)+'')    
+            $('#imgs').append($('<input type="checkbox"/>'))
+            var img = $('<img style="padding:300px"/>')
+            $('#imgs').append(img)
+            img.JsBarcode(val);
+            $("#imgs").append($('<br/><hr/>'))
+        }
+    }
+    function deal(){
+        clean()
+        var ids=$('#ids').val()
+        ids =ids.trim()
+        ids.split('\n').forEach(function(element,index) {
+            code(element,index)
+        });
+    }
+
+    </script>
+</head>
+<body>
+    <textarea id="ids" style="width:140px; height:200px;" ></textarea>
+    <button onclick="deal()">生成</button>
+    <div id="imgs">
+    </div>    
+</body>
+</html>
