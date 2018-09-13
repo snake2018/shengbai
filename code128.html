@@ -1,37 +1,110 @@
 <html>
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.8.0/dist/barcodes/JsBarcode.code128.min.js"></script>
-    <script>
-    function clean(){
-        $('#imgs').html("")
-    }
-    function code(val,index){
-        if(!!val){
-            $('#imgs').append((index+1)+'')    
-            $('#imgs').append($('<input type="checkbox"/>'))
-            var img = $('<img style="padding:300px"/>')
-            $('#imgs').append(img)
-            img.JsBarcode(val);
-            $("#imgs").append($('<br/><hr/>'))
-        }
-    }
-    function deal(){
-        clean()
-        var ids=$('#ids').val()
-        ids =ids.trim()
-        ids.split('\n').forEach(function(element,index) {
-            code(element,index)
-        });
-    }
-
-    </script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.8.0/dist/barcodes/JsBarcode.code128.min.js"></script>
 </head>
 <body>
-    <textarea id="ids" style="width:140px; height:200px;" ></textarea>
-    <button onclick="deal()">生成</button>
-    <div id="imgs">
-    </div>    
+<div id="app">
+ 
+ <img id="barcode" /></br>
+ <button @click="start">开始</button>
+ <button @click="prev"><-(左键)</button>
+ <button @click="ok">完成(上键)</button> <button @click="ok">取消(下键)</button>
+
+ <button @click="next">>(右键)</button>
+ </br>
+ 进度{{current}}/{{total}}  完成:{{success}}  当前金额:{{price}}
+ </br>
+ <textarea v-model="list" style="margin: 0px; height: 300px; width: 400px;"></textarea>
+</div>
+<script>
+var app = new Vue({
+	el: '#app',
+	data:{
+		current: 1,
+		total: 100,
+		list: "",
+		success: 0,
+		orders:[],
+		price: 0
+	},
+	methods: {
+		start(){
+			this.orders = [];
+			if(this.list.trim()!= ''){
+				var lists = this.list.trim().split("\n")
+				if(lists.length > 0){
+					_self = this;
+					lists.forEach(order => {var o=order.split("\t"); _self.orders.push({code:o[0],amount:o[1],do:false})});
+					this.total = lists.length;
+					this.current = 1;
+					this.success = 0;
+					this.render();
+				}else{
+				}
+			}
+		},
+		prev: function(){
+			if(this.current > 1){
+				--this.current;
+				this.render();
+			}
+		},
+		ok: function(){
+			if(this.orders.length>0 && !this.orders[this.current-1].do){
+				this.orders[this.current-1].do = true;
+				this.render();
+				this.success++;
+			}
+
+		},
+		cancel: function(){
+			if(this.orders.length>0 && this.orders[this.current-1].do){
+				this.orders[this.current-1].do = false;
+				this.render();
+				this.success--;
+			}
+
+		},
+
+		next: function(){
+			if(this.current < this.total){
+				this.current++;
+				this.render();
+			}
+		},
+		render:function(){
+			JsBarcode("#barcode",this.orders[this.current-1].code,this.orders[this.current-1].do?{lineColor: "#f50"}:{});
+			this.price = this.orders[this.current-1].amount
+		}
+		
+		
+	},
+	mounted(){
+			JsBarcode("#barcode","Da Lao Fa Cai!")
+	},
+	created(){
+            var _self = this;
+            document.onkeydown = function(e){
+                var key = window.event.keyCode
+                if(key == 37){
+					_self.prev();
+                }
+                else if(key == 38){
+					_self.ok();
+                }
+                else if(key == 39){
+					_self.next();
+                }
+				else if(key == 40){
+					_self.cancel();
+				}
+				
+            }
+	}
+})
+</script>
 <script type="text/javascript" src="https://tajs.qq.com/stats?sId=65391251" charset="UTF-8"></script>
 </body>
 </html>
